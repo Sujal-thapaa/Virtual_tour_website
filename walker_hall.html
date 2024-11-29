@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Virtual Tour</title>
+    <style>
+         html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            background: #f4f4f4;
+        }
+
+        /* Preload screen styles */
+        #preload {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            background: black;
+        }
+
+        #preload img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
+            opacity: 1;
+        }
+
+        #preload img.fade-out {
+            transform: scale(1.1);
+            opacity: 0;
+        }
+
+        #preload img.fade-in {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        #preload button {
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 50%;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            position: absolute;
+            bottom: 20px;
+        }
+
+        #preload button:hover {
+            background-color: rgba(0, 0, 0, 0.9);
+        }
+
+        /* Main content styles */
+        #main-content {
+            display: none;
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background-image: url('walker/40.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 3rem;
+        }
+
+        .floor-selection {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .floor-btn {
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .floor-btn:hover {
+            background-color: #004a99;
+        }
+
+        /* Image viewer styles */
+        #image-viewer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        #image-viewer img {
+            max-width: 100%;
+            max-height: 100%;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
+            opacity: 1;
+        }
+
+        #image-viewer img.fade-out {
+            transform: scale(1.1);
+            opacity: 0;
+        }
+
+        #image-viewer img.fade-in {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .arrows {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.arrow-button {
+    background-color: #02080e;
+    color: white;
+    border: none;
+    padding: 15px;
+    font-size: 1.5rem;
+    border-radius: 50%;
+    cursor: pointer;
+    pointer-events: all;
+    position: absolute;
+    transition: background-color 0.3s;
+}
+
+.arrow-button.up {
+    top: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.arrow-button.down {
+    bottom: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.arrow-button.left {
+    left: 10%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.arrow-button.right {
+    right: 10%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.arrow-button:hover {
+    background-color: #0056b3;
+}
+
+        .close-btn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        .close-btn:hover {
+            background-color: #a71d2a;
+        }
+
+        /* Mini-map styles */
+        #mini-map {
+            display: none;
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            width: 150px;
+            height: 150px;
+            border: 2px solid #007bff;
+            border-radius: 10px;
+            z-index: 2000;
+            cursor: pointer;
+        }
+
+        #mini-map img {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        /* Expanded Mini-map Overlay */
+        #mini-map-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 3000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #mini-map-overlay img {
+            width: 70%;
+            height: auto;
+            border-radius: 20px;
+        }
+
+        .map-point {
+    width: 10px;
+    height: 10px;
+    background: red;
+    border-radius: 50%;
+    position: absolute;
+    cursor: pointer;
+    transform: translate(-50%, -50%);
+}
+
+.map-point:hover {
+    background: yellow;
+}
+
+
+/* Tooltip styling */
+/* Tooltip styling */
+.map-point::after {
+    content: attr(data-name); /* Display the name attribute of the marker */
+    position: absolute;
+    bottom: 150%; /* Position above the marker */
+    left: 50%;
+    transform: translateX(-50%);
+    background: black;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease-in-out;
+    z-index: 3000; /* Ensure it's above other elements */
+}
+
+.map-point:hover::after {
+    opacity: 1; /* Show the tooltip on hover */
+}
+
+
+
+.map-point:hover::after {
+    opacity: 1;
+}
+
+#write-place-marker {
+    position: absolute;
+    top: 50%; /* Adjust to position marker properly */
+    left: 50%; /* Adjust to position marker properly */
+    width: 20px;
+    height: 20px;
+    background: red;
+    border-radius: 50%;
+    cursor: pointer;
+    display: none; /* Initially hidden */
+}
+
+#tooltip {
+    position: absolute;
+    background: black;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    white-space: nowrap;
+    z-index: 3000; /* Ensure it's above all other elements */
+}
+
+
+
+
+    </style>
+</head>
+<body>
+    <!-- Preload Screen -->
+    <div id="preload">
+        <img id="preload-image" src="walker/43.jpg" alt="Preload Image">
+        <button onclick="showNextPreloadImage()">&#8593;</button>
+    </div>
+
+    <!-- Main Content -->
+    <div id="main-content">
+        <h1>Interactive Virtual Tour</h1>
+        <div class="floor-selection">
+            <button class="floor-btn" onclick="loadFloorImages('floor1')">Floor 1</button>
+            <button class="floor-btn" onclick="loadFloorImages('floor2')">Floor 2</button>
+            <button class="floor-btn" onclick="loadFloorImages('floor3')">Floor 3</button>
+        </div>
+    </div>
+
+    <!-- Image Viewer -->
+    <div id="image-viewer">
+        <img id="floor-image" src="" alt="Floor Image">
+    
+        <!-- Marker on Image 69 -->
+        <div id="write-place-marker" 
+             style="display: none; position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; background: red; border-radius: 50%; cursor: pointer;"
+             onclick="redirectToURL('https://www.ulm.edu/english/write_place.html')"
+             onmouseover="showTooltip(event, 'Write Place')"
+             onmouseout="hideTooltip()">
+        </div>
+        
+        <!-- Tooltip -->
+        <div id="tooltip"></div>
+    
+        <!-- Navigation Arrows -->
+        <div class="arrows">
+            <button class="arrow-button up" onclick="navigateImages('up')">&#8593;</button>
+            <button class="arrow-button left" onclick="navigateFloors('left')">&#8592;</button>
+            <button class="arrow-button right" onclick="navigateFloors('right')">&#8594;</button>
+            <button class="arrow-button down" onclick="navigateImages('down')">&#8595;</button>
+        </div>
+        <button class="close-btn" onclick="closeImageViewer()">Close</button>
+    </div>
+    
+    
+    <!-- Mini-Map -->
+    <div id="mini-map" onclick="expandMiniMap()">
+        <img src="walker/36.jpg" alt="Mini Map">
+    </div>
+
+    <!-- Mini-Map Overlay -->
+    <div id="mini-map-overlay" onclick="closeMiniMap()">
+        <img src="walker/36.jpg" alt="Expanded Mini Map">
+    
+        <div class="map-point" 
+        style="position: absolute; top: 34%; left: 75%;" 
+        data-name="Write Place"
+        onclick="redirectToImage('walker/69.jpg')"></div>
+   
+   <div class="map-point" 
+        style="position: absolute; top: 50%; left: 47%;" 
+        data-name="Men Washroom"
+        onclick="redirectToImage('walker/6.jpg')"></div>
+   
+   <div class="map-point" 
+        style="position: absolute; top: 34%; left: 47%;" 
+        data-name="Room 63"
+        onclick="redirectToImage('walker/10.jpg')"></div>
+   
+<div id="tooltip"></div>
+
+    
+    
+    </div>
+    
+
+    <script>
+        let preloadIndex = 0;
+        const preloadImages = ["walker/43.jpg", "walker/42.jpg", "walker/41.jpg"];
+
+        let currentFloor = null;
+        let currentIndex = 0;
+
+        const floorImages = {
+    floor1: ["walker/31.jpg", "walker/30.jpg", "walker/29.jpg", "walker/28.jpg", "walker/27.jpg", "walker/26.jpg", "walker/25.jpg", "walker/24.jpg", "walker/23.jpg"],
+    floor2: ["walker/22.jpg"],
+    floor3: ["walker/21.jpg", "walker/20.jpg", "walker/19.jpg", "walker/18.jpg", "walker/17.jpg", "walker/16.jpg", "walker/15.jpg", "walker/14.jpg", "walker/13.jpg", "walker/12.jpg", "walker/11.jpg"],
+    floor4: ["walker/10.jpg", "walker/9.jpg", "walker/8.jpg", "walker/7.jpg", "walker/6.jpg", "walker/5.jpg", "walker/4.jpg", "walker/69.jpg"]
+};
+
+
+        function showNextPreloadImage() {
+            const preloadImage = document.getElementById("preload-image");
+            preloadImage.classList.add("fade-out");
+            setTimeout(() => {
+                preloadIndex++;
+                if (preloadIndex < preloadImages.length) {
+                    preloadImage.src = preloadImages[preloadIndex];
+                } else {
+                    document.getElementById("preload").style.display = "none";
+                    document.getElementById("main-content").style.display = "block";
+                    return;
+                }
+                preloadImage.classList.remove("fade-out");
+                preloadImage.classList.add("fade-in");
+                setTimeout(() => {
+                    preloadImage.classList.remove("fade-in");
+                }, 100);
+            }, 100);
+        }
+
+        function loadFloorImages(floor) {
+            currentFloor = floor;
+            currentIndex = 0;
+
+            if (floor === 'floor3') {
+                document.getElementById('mini-map').style.display = 'block';
+            } else {
+                document.getElementById('mini-map').style.display = 'none';
+            }
+
+            showImage(floorImages[floor][currentIndex]);
+            document.getElementById("image-viewer").style.display = "flex";
+        }
+
+        function showImage(imageSrc) {
+    const floorImage = document.getElementById("floor-image");
+    const writePlaceMarker = document.getElementById("write-place-marker");
+
+    floorImage.classList.add("fade-out");
+    setTimeout(() => {
+        floorImage.src = imageSrc;
+        floorImage.classList.remove("fade-out");
+        floorImage.classList.add("fade-in");
+        
+        // Show the marker only for 69.jpg
+        if (imageSrc.includes('69.jpg')) {
+            writePlaceMarker.style.display = 'block';
+        } else {
+            writePlaceMarker.style.display = 'none';
+        }
+    }, 100);
+}
+
+
+
+        function navigateImages(direction) {
+            if (!currentFloor) return;
+            const images = floorImages[currentFloor];
+            const totalImages = images.length;
+
+            if (direction === "up") {
+                currentIndex = (currentIndex + 1) % totalImages;
+            } else if (direction === "down") {
+                currentIndex = (currentIndex - 1 + totalImages) % totalImages;
+            }
+
+            showImage(images[currentIndex]);
+        }
+
+        function closeImageViewer() {
+            document.getElementById("image-viewer").style.display = "none";
+        }
+
+        function expandMiniMap() {
+            document.getElementById("mini-map-overlay").style.display = "flex";
+        }
+
+        function closeMiniMap() {
+            document.getElementById("mini-map-overlay").style.display = "none";
+        }
+
+        function navigateFloors(direction) {
+    const floorKeys = Object.keys(floorImages);
+    const totalFloors = floorKeys.length;
+
+    if (currentFloor === null) return;
+
+    let currentFloorIndex = floorKeys.indexOf(currentFloor);
+
+    if (direction === "right") {
+        currentFloorIndex = (currentFloorIndex + 1) % totalFloors;
+    } else if (direction === "left") {
+        currentFloorIndex = (currentFloorIndex - 1 + totalFloors) % totalFloors;
+    }
+
+    currentFloor = floorKeys[currentFloorIndex];
+    currentIndex = 0; // Reset image index for the new floor
+    showImage(floorImages[currentFloor][currentIndex]);
+
+    // Mini-map is now always visible, no need to toggle its display
+    document.getElementById('mini-map').style.display = 'block';
+}
+
+function redirectToImage(imageSrc) {
+    closeMiniMap();
+    showImage(imageSrc);
+    document.getElementById("image-viewer").style.display = "flex";
+}
+
+function showTooltip(event, name) {
+    const tooltip = document.getElementById('tooltip');
+    
+    // Adjust tooltip position dynamically
+    tooltip.style.left = `${event.pageX + 10}px`; // 10px to the right of the cursor
+    tooltip.style.top = `${event.pageY - 20}px`; // Slightly above the cursor
+    tooltip.style.opacity = 1; // Make it visible
+    tooltip.innerText = name; // Set the text
+}
+
+function hideTooltip() {
+    const tooltip = document.getElementById('tooltip');
+    tooltip.style.opacity = 0; // Hide the tooltip
+}
+
+
+
+
+function redirectToURL(url) {
+    window.open(url, '_blank'); // Opens the URL in a new tab
+}
+
+    </script>
+</body>
+</html>

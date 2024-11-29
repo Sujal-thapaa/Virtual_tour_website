@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ULM Interactive Map</title>
+    <style>
+        /* Container for the map */
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f3f3f3;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #map-container {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #map-content {
+            position: relative;
+            transform-origin: 0 0; /* Required for Panzoom */
+        }
+
+        /* The map image */
+        #map-image {
+            display: block;
+            width: 100%;
+            height: auto; /* Maintain aspect ratio */
+        }
+
+        /* Style for pins */
+        .point {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background-color: #ff3333;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .point:hover {
+            transform: scale(1.2);
+            background-color: #ff6666;
+        }
+
+        /* Tooltip styling */
+        .point::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 5px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            font-size: 12px;
+        }
+
+        .point:hover::after {
+            opacity: 1;
+        }
+
+        /* Search bar styling */
+        #search-bar {
+            position: relative;
+            padding: 10px;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        #search-input {
+            width: 80%;
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            outline: none;
+            margin-right: 5px;
+        }
+
+        #search-button {
+            padding: 6px 12px;
+            background: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #search-button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Search bar -->
+<div id="search-bar">
+    <input id="search-input" type="text" placeholder="Search for a building...">
+    <button id="search-button" onclick="searchPoint()">Search</button>
+</div>
+
+<div id="map-container">
+    <div id="map-content">
+        <img src="ULM map.png" id="map-image" alt="ULM Campus Map">
+
+        <!-- Pins -->
+        <div class="point" style="top: 4%; left: 30%;" title="Madison Hall" data-name="madison hall" onclick="redirectToStreetView('madisonHall')"></div>
+        <div class="point" style="top: 17%; left: 28%;" title="BCM" data-name="bcm" onclick="redirectToStreetView('bcm')"></div>
+        <div class="point" style="top: 50%; left: 50%;" title="Library" data-name="library" onclick="redirectToStreetView('library')"></div>
+        <div class="point" style="top: 42%; left: 17%;" title="Chemistry & Natural Science Building" data-name="chemistry & natural science building" onclick="redirectToStreetView('cnsb')"></div>
+        <div class="point" style="top: 46%; left: 28%;" title="HUB" data-name="hub" onclick="redirectToStreetView('hub')"></div>
+        <div class="point" style="top: 35%; left: 69%;" title="Schulze Dining Hall" data-name="schulze dining hall" onclick="redirectToStreetView('schulzeDiningHall')"></div>
+        <div class="point" style="top: 47%; left: 33%;" title="Sandel Hall" data-name="sandel hall" onclick="redirectToStreetView('sandelHall')"></div>
+        <div class="point" style="top: 52%; left: 40%;" title="Student Success Center" data-name="student success center" onclick="redirectToStreetView('studentSuccessCenter')"></div>
+        <div class="point" style="top: 22%; left: 85%;" title="Coliseum" data-name="coliseum" onclick="redirectToStreetView('coliseum')"></div>
+        <div class="point" style="top: 37%; left: 7%;" title="Hemphill Hall (HMPH)" data-name="hemphill hall" onclick="redirectToStreetView('HemphillHall')"></div>
+        <div class="point" style="top: 64%; left: 27%;" title="Walker Hall (WALK)" data-name="walker hall" onclick="redirectToStreetView('GeorgeTWalkerHall')"></div>
+        <div class="point" style="top: 57%; left: 24%;" title="Hanna Hall (HANN)" data-name="hanna hall" onclick="redirectToStreetView('HannaHall')"></div>
+        <div class="point" style="top: 72%; left: 19%;" title="Sugar Hall (SUGR)" data-name="sugar hall" onclick="redirectToStreetView('SugarHall')"></div>
+        <div class="point" style="top: 60%; left: 13%;" title="Kitty DeGree Hall (NURS)" data-name="kitty degree hall" onclick="redirectToStreetView('KittyDeGreeHall')"></div>
+        <div class="point" style="top: 38%; left: 29%;" title="University Commons" data-name="university commons" onclick="redirectToStreetView('UniversityCommons')"></div>
+        <div class="point" style="top: 41%; left: 39%;" title="University Suites" data-name="university suites" onclick="redirectToStreetView('UniversitySuites')"></div>
+        <div class="point" style="top: 20%; left: 42%;" title="Coenen Hall (COEN)" data-name="coenen hall" onclick="redirectToStreetView('CoenenHall')"></div>
+        <div class="point" style="top: 72%; left: 57%;" title="Strauss Hall (STRS)" data-name="strauss hall" onclick="redirectToStreetView('StraussHall')"></div>
+        <div class="point" style="top: 12%; left: 51%;" title="Foot Bridge" data-name="strauss hall" onclick="redirectToStreetView('footbridge')"></div>
+    </div>
+</div>
+
+<script>
+    // Function to highlight a specific point by name
+    function searchPoint() {
+        const searchInput = document.getElementById("search-input").value.trim().toLowerCase();
+        const points = document.querySelectorAll(".point");
+
+        let found = false;
+        points.forEach(point => {
+            const pointName = point.getAttribute("data-name").toLowerCase();
+            if (pointName.includes(searchInput)) {
+                point.style.backgroundColor = "#00ff00"; // Highlight color
+                point.style.transform = "scale(1.5)"; // Make it larger
+                found = true;
+            } else {
+                point.style.backgroundColor = "#ff3333"; // Reset other points
+                point.style.transform = "scale(1)";
+            }
+        });
+
+        if (!found) {
+            alert("Building not found");
+        }
+    }
+
+    // Redirect to the respective Street View location in index.html
+    function redirectToStreetView(locationKey) {
+        sessionStorage.setItem("selectedLocation", locationKey);
+        window.location.href = "index.html";
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ULM Virtual Tour</title>
+    <style>
+        /* Fullscreen Street View container */
+        html, body, #pano {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Mini map container as a clickable area */
+        #mini-map-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 200px;
+            height: 200px;
+            z-index: 10;
+            border: 2px solid #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Fullscreen Street View -->
+<div id="pano"></div>
+
+<!-- Mini map container that redirects to ULM_MAP.html when clicked -->
+<div id="mini-map-container" onclick="redirectToFullMap()">
+    <iframe id="mini-map" src="ULMMAP.html" frameborder="0" style="width:100%; height:100%; pointer-events: none;"></iframe>
+</div>
+
+<!-- Load the Google Maps API -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDiisiOJP-p0TOQMfRTt2hUju4sYfZjztk&callback=initMap" async defer></script>
+<script>
+    // Define the locations with lat-lng pairs, respective URLs, and names
+    const locations = {
+    madisonHall: { 
+        lat: 32.53141486520088, 
+        lng: -92.07575416859294, 
+        url: "https://ulm.edu/reslife/madison_hall.html",
+        name: "Madison Hall"
+    },
+    bcm: { 
+        lat: 32.530380227023095, 
+        lng: -92.07551708650689, 
+        url: "bcm.html",
+        name: "BCM Building"
+    },
+    library: { 
+        lat: 32.5288023859178, 
+        lng: -92.07296392457317, 
+        url: "library.html",
+        name: "University Library"
+    },
+    cnsb: { 
+        lat: 32.52901551702299, 
+        lng: -92.07580366711164, 
+        url: "cnsb.html",
+        name: "CNSB Building"
+    },
+    hub: { 
+        lat: 32.5291168437061, 
+        lng: -92.07495999702866, 
+        url: "https://univlamonroe.campusdish.com/en/locationsandmenus/thehub/",
+        name: "The Hub"
+    },
+    schulzeDiningHall: { 
+        lat: 32.53002620668472, 
+        lng: -92.07084588104141, 
+        url: "https://univlamonroe.campusdish.com/LocationsAndMenus/Schulze",
+        name: "Schulze Dining Hall"
+    },
+    sandelHall: { 
+        lat: 32.52892707754729,  
+        lng: -92.07435791317282, 
+        url: "sandel_hall.html",
+        name: "Sandel Hall"
+    },
+    studentSuccessCenter: {  
+        lat: 32.52885326801863, 
+        lng: -92.07351377742107, 
+        url: "https://www.ulm.edu/studentsuccess/",
+        name: "Student Success Center"
+    },
+    coliseum: { 
+        lat: 32.53076778179313, 
+        lng: -92.06969845596491, 
+        url: "https://ulmwarhawks.com/facilities/fant-ewing-coliseum/4",
+        name: "Fant-Ewing Coliseum"
+    },
+    KittyDeGreeHall: { 
+        lat: 32.527944883051696, 
+        lng: -92.07597158109515, 
+        url: "KittyDeGreeHall",
+        name: "Kitty DeGree Hall"
+    },
+    GeorgeTWalkerHall: {    
+        lat: 32.52775292821553, 
+        lng: -92.07466248275753, 
+        url: "walker_hall.html",
+        name: "George T. Walker Hall"
+    },
+    SugarHall: { 
+        lat: 32.52753217964691, 
+        lng: -92.07518232760465, 
+        url: "SugarHall",
+        name: "Sugar Hall"
+    },
+    UniversityCommons: { 
+        lat: 32.529595532192, 
+        lng: -92.07518836900879, 
+        url: "https://www.ulm.edu/reslife/university_commons_.html",
+        name: "University Commons"
+    },
+    UniversitySuites: { 
+        lat: 32.52930607156967, 
+        lng: -92.07354685709178, 
+        url: "https://ulm.edu/reslife/university_suites.html",
+        name: "University Suites"
+    },
+    HemphillHall: { 
+        lat: 32.52930349469612, 
+        lng: -92.07716208456432, 
+        url: "HemphillHall",
+        name: "Hemphill Hall"
+    },
+    CoenenHall: {  
+        lat: 32.530778636837745, 
+        lng: -92.07400968233551, 
+        url: "CoenenHall",
+        name: "Coenen Hall"
+    },
+    StraussHall: {  
+        lat: 32.527736113648714, 
+        lng: -92.07238635237854, 
+        url: "StraussHall",
+        name: "Strauss Hall"
+    },
+    footbridge: {
+        lat: 32.53137659832743,  
+        lng: -92.07361767005064,
+        url: "foot_bridge.html",
+        name: "Footbridge"
+    }
+};
+
+    let panorama;
+
+    function initMap() {
+        // Check for a saved location in sessionStorage
+        const selectedLocation = sessionStorage.getItem("selectedLocation");
+        
+        // Use the saved location or default to the library if no selection is saved
+        const initialLocation = selectedLocation && locations[selectedLocation] 
+            ? locations[selectedLocation] 
+            : locations.library;
+
+        // Initialize the full-screen Street View with the selected or default location
+        panorama = new google.maps.StreetViewPanorama(document.getElementById("pano"), {
+            position: initialLocation,
+            pov: { heading: 165, pitch: 0 },
+            zoom: 1,
+        });
+
+        // Add markers to Street View
+        Object.keys(locations).forEach(key => {
+            const location = locations[key];
+            const marker = new google.maps.Marker({
+                position: location,
+                map: panorama,
+                title: location.name, // Show the name of the building on hover
+                icon: { url: "https://maps.google.com/mapfiles/ms/icons/red-dot.png" }
+            });
+
+            // Add click event to redirect to the respective website
+            marker.addListener("click", () => {
+                window.open(location.url, "_blank"); // Opens in a new tab
+            });
+        });
+
+        // Go to the selected location if it exists, then clear sessionStorage
+        if (selectedLocation && locations[selectedLocation]) {
+            goToLocation(selectedLocation);
+            sessionStorage.removeItem("selectedLocation");
+        }
+    }
+
+    // Redirect to ULM_MAP.html when mini-map is clicked
+    function redirectToFullMap() {
+        window.location.href = "ULMMAP.html";
+    }
+
+    // Function to go to a specific location in Street View
+    function goToLocation(locationKey) {
+        const location = locations[locationKey];
+        if (location) {
+            panorama.setPosition(location);
+            panorama.setPov({ heading: 0, pitch: 0 });
+        } else {
+            console.error("Location not found:", locationKey);
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Virtual Tour</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        /* Preload screen styles */
+        #preload {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #4A90E2, #A3DAFF);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        #preload img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #preload button {
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 50%;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            position: absolute;
+            bottom: 20px;
+        }
+
+        #preload button:hover {
+            background-color: rgba(0, 0, 0, 0.9);
+        }
+
+        /* Main content styles */
+        #main-content {
+            display: none;
+            position: relative;
+            background-image: url('sandel/4.jpg');
+            background-size: cover;
+            background-position: center;
+            width: 100%;
+            height: 100vh;
+        }
+
+        h1 {
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+            position: absolute;
+            top: 20%;
+            width: 100%;
+            text-align: center;
+            font-size: 3rem;
+        }
+
+        .floor-selection {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 20px;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 2;
+        }
+
+        .floor-btn {
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            position: relative;
+        }
+
+        .floor-btn:hover {
+            background-color: #004a99;
+        }
+
+        .dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: -200px; /* Ensures the dropdown stays visible on the screen */
+            background: rgba(140, 30, 30, 0.9);
+            border: 1px solid #d3ff0f;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            z-index: 1000;
+            width: 250px;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            color: white;
+        }
+
+        .dropdown-item:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .dropdown-item img {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+
+        .floor-btn:hover .dropdown {
+            display: block;
+        }
+
+        /* Popup styles */
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            width: 90%;
+            max-width: 500px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .popup img {
+            width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+            margin-bottom: 15px;
+            border-radius: 10px;
+        }
+
+        .popup h3 {
+            margin: 10px 0;
+        }
+
+        .popup p {
+            text-align: center;
+            color: black;
+        }
+
+        .close-btn {
+            margin-top: 10px;
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .close-btn:hover {
+            background-color: #004a99;
+        }
+    </style>
+</head>
+<body>
+    <!-- Preload Screen -->
+    <div id="preload">
+        <img id="preload-image" src="sandel/1.jpg" alt="Preload Image">
+        <button onclick="showNextPreloadImage()">&#8593;</button>
+    </div>
+
+    <!-- Main Content -->
+    <div id="main-content">
+        <h1>Interactive Virtual Tour</h1>
+
+
+        <div class="floor-selection">
+            <!-- Floor 1 -->
+            <div class="floor-btn" onclick="showFloorName('Floor 1')">
+                Floor 1
+                <div class="dropdown">
+                    <div class="dropdown-item" onclick="showRoomDetails('Enrollment Services', event)">
+                        <img src="sandel/5.jpg" alt="Room Image">
+                        <span>Enrollment Services</span>
+                    </div>
+                    <div class="dropdown-item" onclick="showRoomDetails('Admissions', event)">
+                        <img src="sandel/6.jpg" alt="Room Image">
+                        <span>Admissions</span>
+                    </div>
+                    <div class="dropdown-item" onclick="showRoomDetails('Scholarships', event)">
+                        <img src="sandel/7.jpg" alt="Room Image">
+                        <span>Scholarships</span>
+                    </div>
+                    <div class="dropdown-item" onclick="showRoomDetails('Dr. Charles R. McDonald Financial Aid', event)">
+                        <img src="sandel/8.jpg" alt="Room Image">
+                        <span>Financial Aid</span>
+                    </div>
+                    <div class="dropdown-item" onclick="showRoomDetails('Warhawks Welcome Center', event)">
+                        <img src="sandel/9.jpg" alt="Room Image">
+                        <span>Warhawks Welcome Center</span>
+                    </div>
+                    <div class="dropdown-item" onclick="showRoomDetails('Hawkseekers', event)">
+                        <img src="sandel/10.jpg" alt="Room Image">
+                        <span>Hawkseekers</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Floor 2 -->
+            <div class="floor-btn" onclick="showFloorName('Floor 2')">
+                Floor 2
+                <div class="dropdown">
+                    <div class="dropdown-item" onclick="showRoomDetails('Global & Multicultural Affairs', event)">
+                        <img src="sandel/11.jpg" alt="Room Image">
+                        <span>Global Affairs</span>
+                    </div>
+                    <div class="dropdown-item" onclick="showRoomDetails('University Registrar', event)">
+                        <img src="sandel/12.jpg" alt="Room Image">
+                        <span>University Registrar</span>
+                    </div>
+                    <div class="dropdown-item" onclick="showRoomDetails('Conference Room', event)">
+                        <img src="sandel/13.jpg" alt="Room Image">
+                        <span>Conference Room</span>
+                    </div>
+                    <div class="dropdown-item" onclick="showRoomDetails('ACE\'S PLACE', event)">
+                        <img src="sandel/14.jpg" alt="Room Image">
+                        <span>ACE'S PLACE</span>
+                    </div>
+                    <div class="dropdown-item" onclick="showRoomDetails('Graduate School', event)">
+                        <img src="sandel/15.jpg" alt="Room Image">
+                        <span>Graduate School</span>
+                    </div>
+                    <div class="dropdown-item" onclick="showRoomDetails('PREP', event)">
+                        <img src="sandel/16.jpg" alt="Room Image">
+                        <span>PREP</span>
+                    </div>
+                    <div class="dropdown-item" onclick="showRoomDetails('Student Advocacy and Accountability', event)">
+                        <img src="sandel/17.jpg" alt="Room Image">
+                        <span>Student Advocacy and Accountability</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Floor 3 -->
+            <div class="floor-btn" onclick="showFloorName('Floor 3')">
+                Floor 3
+                <div class="dropdown">
+                    <div class="dropdown-item" onclick="showRoomDetails('Dining Services', event)">
+                        <img src="sandel/18.jpg" alt="Room Image">
+                        <span>Dining Services</span>
+                    </div>
+                    <div class="dropdown-item" onclick="showRoomDetails('Information Services and Student Success', event)">
+                        <img src="sandel/19.jpg" alt="Room Image">
+                        <span>Information Services</span>
+                    </div>
+                    <div class="dropdown-item" onclick="showRoomDetails('OI & R (Office of Institutional Research)', event)">
+                        <img src="sandel/20.jpg" alt="Room Image">
+                        <span>Office of Institutional Research</span>
+                    </div>
+                    <div class="dropdown-item" onclick="showRoomDetails('KEDM Public Radio', event)">
+                        <img src="sandel/21.jpg" alt="Room Image">
+                        <span>KEDM Public Radio</span>
+                    </div>
+                    <div class="dropdown-item" onclick="showRoomDetails('KXUL Radio', event)">
+                        <img src="sandel/22.jpg" alt="Room Image">
+                        <span>KXUL Radio</span>
+                    </div>
+                    <div class="dropdown-item" onclick="showRoomDetails('TRIO', event)">
+                        <img src="sandel/23.jpg" alt="Room Image">
+                        <span>TRIO</span>
+                    </div>
+                    <div class="dropdown-item" onclick="showRoomDetails('Bio Lab', event)">
+                        <img src="sandel/24.jpg" alt="Room Image">
+                        <span>Bio Lab</span>
+                    </div>
+                    <div class="dropdown-item" onclick="showRoomDetails('Northeast Louisiana Tumor Registry', event)">
+                        <img src="sandel/25.jpg" alt="Room Image">
+                        <span>Tumor Registry</span>
+                    </div>
+                    <div class="dropdown-item" onclick="showRoomDetails('Trio Lab', event)">
+                        <img src="sandel/26.jpg" alt="Room Image">
+                        <span>Trio Lab</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        
+    </div>
+
+    <!-- Popup for Room Details -->
+    <div class="popup" id="popup">
+        <img id="popup-image" src="" alt="Room Image">
+        <h3 id="popup-title">Room Title</h3>
+        <p id="popup-description">Room Description</p>
+        <button class="close-btn" onclick="closePopup()">Close</button>
+    </div>
+
+    <script>
+        let preloadIndex = 0;
+        const preloadImages = ["sandel/1.jpg", "sandel/3.jpg"];
+
+        function showNextPreloadImage() {
+            preloadIndex++;
+            if (preloadIndex < preloadImages.length) {
+                document.getElementById("preload-image").src = preloadImages[preloadIndex];
+            } else {
+                document.getElementById("preload").style.display = "none";
+                document.getElementById("main-content").style.display = "block";
+            }
+        }
+
+        const rooms = {
+    "Enrollment Services": {
+        image: "sandel/5.jpg",
+        title: "Enrollment Services",
+        description: "This office helps with the overall enrollment process, including registration, maintaining student records, and providing support for course scheduling."
+    },
+    "Admissions": {
+        image: "sandel/6.jpg",
+        title: "Admissions",
+        description: "Manages recruitment of new students, processes applications, and provides information about programs, scholarships, and student life."
+    },
+    "Scholarships": {
+        image: "sandel/7.jpg",
+        title: "Scholarships",
+        description: "Provides information and processes applications for scholarships, helping students find and apply for financial assistance based on academic performance, needs, or other criteria."
+    },
+    "Dr. Charles R. McDonald Financial Aid": {
+        image: "sandel/8.jpg",
+        title: "Financial Aid",
+        description: "Administers financial aid programs, including grants, loans, and work-study opportunities to support students in financing their education."
+    },
+    "Warhawks Welcome Center": {
+        image: "sandel/9.jpg",
+        title: "Warhawks Welcome Center",
+        description: "A welcoming space for new students and visitors, offering resources for prospective students, orientation services, and general university information."
+    },
+    "Hawkseekers": {
+        image: "sandel/10.jpg",
+        title: "Hawkseekers",
+        description: "Guides students through their university journey, including career services, internships, and connecting with alumni."
+    },
+    "Global & Multicultural Affairs": {
+        image: "sandel/11.jpg",
+        title: "Global & Multicultural Affairs",
+        description: "Focuses on promoting diversity, inclusion, and global engagement through cultural programs, international student services, and support for students from various backgrounds."
+    },
+    "University Registrar": {
+        image: "sandel/12.jpg",
+        title: "University Registrar",
+        description: "Maintains student academic records, including transcripts, course registrations, and degree audits, while supporting students with graduation requirements."
+    },
+    "Conference Room": {
+        image: "sandel/13.jpg",
+        title: "Conference Room",
+        description: "A meeting space for faculty, staff, and students to hold conferences, seminars, and presentations for university-related events, workshops, and student group meetings."
+    },
+    "ACE'S PLACE": {
+        image: "sandel/14.jpg",
+        title: "ACE'S PLACE",
+        description: "An academic resource center designed to assist students with academic support, tutoring services, or coaching to improve study skills and academic performance."
+    },
+    "Graduate School": {
+        image: "sandel/15.jpg",
+        title: "Graduate School",
+        description: "Manages graduate programs, including admissions, advising, and support services for graduate students pursuing master’s, doctoral, or professional degrees."
+    },
+    "PREP": {
+        image: "sandel/16.jpg",
+        title: "PREP",
+        description: "Offers resources for students preparing for professional school or careers in fields like medicine, law, or engineering, providing guidance and preparation support."
+    },
+    "Student Advocacy and Accountability": {
+        image: "sandel/17.jpg",
+        title: "Student Advocacy and Accountability",
+        description: "Handles student conduct, providing advocacy and resources for students facing disciplinary actions or other personal challenges within the university."
+    },
+    "Dining Services": {
+        image: "sandel/18.jpg",
+        title: "Dining Services",
+        description: "Manages food services on campus, overseeing meal plans, dining halls, and food options for students, faculty, and staff."
+    },
+    "Information Services and Student Success": {
+        image: "sandel/19.jpg",
+        title: "Information Services and Student Success",
+        description: "Provides tech support and academic resources, ensuring students have access to the tools and services they need to succeed in their coursework and university life."
+    },
+    "OI & R (Office of Institutional Research)": {
+        image: "sandel/20.jpg",
+        title: "OI & R",
+        description: "Responsible for collecting, analyzing, and reporting institutional data to support university decision-making and provide insights into student success, enrollment trends, and academic performance."
+    },
+    "KEDM Public Radio": {
+        image: "sandel/21.jpg",
+        title: "KEDM Public Radio",
+        description: "The university’s public radio station, providing news, entertainment, and educational content for both the university community and the surrounding area."
+    },
+    "KXUL Radio": {
+        image: "sandel/22.jpg",
+        title: "KXUL Radio",
+        description: "A student-run radio station that allows students to gain hands-on experience in broadcasting, hosting music shows, and providing a platform for student voices."
+    },
+    "TRIO": {
+        image: "sandel/23.jpg",
+        title: "TRIO",
+        description: "Designed to help students from disadvantaged backgrounds succeed in college by providing tutoring, mentoring, counseling, and other support services."
+    },
+    "Bio Lab": {
+        image: "sandel/24.jpg",
+        title: "Bio Lab",
+        description: "A laboratory focused on biological sciences research and experimentation, offering hands-on learning opportunities for biology-related courses."
+    },
+    "Northeast Louisiana Tumor Registry": {
+        image: "sandel/25.jpg",
+        title: "Northeast Louisiana Tumor Registry",
+        description: "A specialized center dedicated to tracking and studying cancer cases in the region, supporting research and public health initiatives aimed at understanding and preventing cancer."
+    },
+    "Trio Lab": {
+        image: "sandel/26.jpg",
+        title: "Trio Lab",
+        description: "A lab associated with the TRIO program, providing space for students to engage in academic or research-based activities to improve their skills and learning."
+    }
+};
+
+
+        function showFloorName(floorName) {
+            alert(`Currently viewing: ${floorName}`);
+        }
+
+        function showRoomDetails(roomName, event) {
+            event.stopPropagation();
+            const room = rooms[roomName];
+            if (room) {
+                document.getElementById("popup-image").src = room.image;
+                document.getElementById("popup-title").innerText = room.title;
+                document.getElementById("popup-description").innerText = room.description;
+                document.getElementById("popup").style.display = "flex";
+            }
+        }
+
+        function closePopup() {
+            document.getElementById("popup").style.display = "none";
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

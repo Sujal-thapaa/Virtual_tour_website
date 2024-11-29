@@ -1,0 +1,50 @@
+/* Basic reset for consistent styling */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+header {
+    background-color: #003366;
+    color: #ffffff;
+    padding: 20px;
+    width: 100%;
+    text-align: center;
+}
+
+h1 {
+    font-size: 2rem;
+}
+
+#tour-container {
+    margin-top: 20px;
+    text-align: center;
+}
+
+#map {
+    width: 90%;
+    max-width: 800px;
+    height: 500px;
+    margin: 0 auto;
+}
+
+footer {
+    margin-top: 20px;
+    padding: 10px;
+    text-align: center;
+    background-color: #003366;
+    color: #ffffff;
+    width: 100%;
+}
+
+footer p {
+    font-size: 0.9rem;
+}

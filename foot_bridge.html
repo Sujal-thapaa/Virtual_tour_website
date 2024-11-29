@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Street View Style Navigation</title>
+    <link rel="stylesheet" href="foot_style.css">
+</head>
+<body>
+    <div class="container">
+        <img id="current-image" src="footbridge/114.jpg" alt="Street View">
+        <div class="bottom-controls">
+            <button id="left-arrow" class="nav-button hidden" onclick="changeImage(-1, 'horizontal')">&#9664;</button>
+            <div class="vertical-buttons">
+                <button id="up-arrow" class="nav-button hidden" onclick="changeImage(1, 'vertical')">&#9650;</button>
+                <button id="down-arrow" class="nav-button hidden" onclick="changeImage(-1, 'vertical')">&#9660;</button>
+            </div>
+            <button id="right-arrow" class="nav-button hidden" onclick="changeImage(1, 'horizontal')">&#9654;</button>
+        </div>
+    </div>
+    <script src="foot_script.js"></script>
+</body>
+</html>
